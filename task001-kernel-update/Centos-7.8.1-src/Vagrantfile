@@ -1,0 +1,6 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "akulishov/centos-7.8.1-src"
+  config.vm.box_version = "2.0"
+  # Enabled shared folders
+  config.vm.synced_folder "~/VBoxSF", "/mnt", type: "virtualbox"
+end
