@@ -77,7 +77,7 @@ _________________________________________________
 Перезапускаю сервер nginx и наблюдаю ошибку запуска по причине 
 
 <code>nginx: [emerg] bind() to 0.0.0.0:8088 failed (13: Permission denied)<code>  
-	
+
 запрета доступа к порту 8088.  
 	
 <details><summary><code>[root@selin ~]# systemctl restart nginx </code></summary>
@@ -115,9 +115,11 @@ Feb 16 09:45:06 selin systemd[1]: nginx.service failed.
 
 
 _________________________________________________
-#### 1. <a name="switchset"></a>
-https://www.nginx.com/blog/using-nginx-plus-with-selinux/
+#### 1. Предоставим возможность прослушивать nginx не стандартный порт с помощью переключателя setsebool<a name="switchset"></a>  
 
+https://www.nginx.com/blog/using-nginx-plus-with-selinux/  
+
+Посмотрим нарушения политик
 <details><summary><code>[root@selin ~]# ausearch -m AVC </code></summary>
 
 ```shell
@@ -140,6 +142,7 @@ type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=301
 </details> 
 
 _________________________________________________
+С помощью утилиты audit2why ещё раз определяем критерии ошибки, также эта утилита предлогает вариант решения, которым я воспользуюсь
 <details><summary><code>[root@selin ~]# grep 1613551433.976:845 /var/log/audit/audit.log | audit2why </code></summary>
 
 ```shell
@@ -158,7 +161,8 @@ type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=301
 
 
 _________________________________________________
-<details><summary><code>[root@selin ~]# man setsebool
+Параметр -P используется для применения политики на постоянной основе, без -P политика применяется до перезагрузки.
+<details><summary><code>[root@selin ~]# man setsebool</code></summary>
 
 ```shell
 Without the -P option, only the current boolean value is affected; the boot-time default settings are not changed.
@@ -169,6 +173,7 @@ If the -P option is given, all pending values are written to the policy file on 
 
 
 _________________________________________________
+Применю политику до перезагрузки
 <details><summary><code>[root@selin ~]# setsebool nis_enabled 1 </code></summary>
 
 ```shell
@@ -176,10 +181,8 @@ _________________________________________________
 ```
 </details> 
 
-
-
-
 _________________________________________________
+Перезапускаю nginx - всё ок.
 <details><summary><code>[root@selin ~]# systemctl restart nginx</code></summary>
 
 ```shell
@@ -206,6 +209,7 @@ Feb 17 08:47:04 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 
 
 _________________________________________________
+проверяю на каких портах слушает nginx - не стандартный порт открыт.
 <details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
 
 ```shell
@@ -215,8 +219,11 @@ tcp    LISTEN     0      128    [::]:80                 [::]:*                  
 ```
 </details> 
 
+Браузер соединяется с nginx по не стандартному порту
+![соединение с nginx](nginx88.png)
 
-http://blog.102web.ru/howto/selinux-centos-komandy/
+
+
 _________________________________________________
 <details><summary><code>[root@selin ~]# reboot</code></summary>
 
@@ -225,6 +232,7 @@ _________________________________________________
 ```
 </details> 
 
+http://blog.102web.ru/howto/selinux-centos-komandy/
 _________________________________________________
 <details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
 
