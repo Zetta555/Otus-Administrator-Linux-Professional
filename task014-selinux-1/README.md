@@ -282,7 +282,9 @@ _________________________________________________
 ```shell
 tcp    LISTEN     0      128       *:8088                  *:*                   users:(("nginx",pid=998,fd=6),("nginx",pid=997,fd=6))
 tcp    LISTEN     0      128    [::]:80                 [::]:*                   users:(("nginx",pid=998,fd=7),("nginx",pid=997,fd=7))
-
+  
+```
+</details> 
 _________________________________________________
 Удаляю порт из разрешённых.
 <code>[root@selin ~]# semanage port -d -t http_port_t -p tcp 8088</code>
