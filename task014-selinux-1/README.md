@@ -74,12 +74,12 @@ _________________________________________________
 <summary><code>[root@selin ~]# sed -i 's/.*listen       80 default_server;.*/listen       8088 default_server;/' /etc/nginx/nginx.conf </code></summary>
 
 _________________________________________________
-Перезапускаю сервер nginx и наблюдаю ошибку запуска по причине 
-
-<code>nginx: [emerg] bind() to 0.0.0.0:8088 failed (13: Permission denied)<code>  
-
-запрета доступа к порту 8088.  
-	
+Перезапускаю сервер nginx и наблюдаю ошибку запуска по причине.  
+  
+<code> nginx: [emerg] bind() to 0.0.0.0:8088 failed (13: Permission denied) <code>  
+  
+Запрета доступа к порту 8088.  
+  	
 <details><summary><code>[root@selin ~]# systemctl restart nginx </code></summary>
 
 ```shell
@@ -132,7 +132,6 @@ type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=301
 ```
 </details> 
 
-_________________________________________________
 <details><summary><code>[root@selin ~]# cat /var/log/audit/audit.log | grep nginx | grep denied </code></summary>
 
 ```shell
@@ -174,12 +173,7 @@ If the -P option is given, all pending values are written to the policy file on 
 
 _________________________________________________
 Применю политику до перезагрузки
-<details><summary><code>[root@selin ~]# setsebool nis_enabled 1 </code></summary>
-
-```shell
-  
-```
-</details> 
+<code>[root@selin ~]# setsebool nis_enabled 1 </code>  
 
 _________________________________________________
 Перезапускаю nginx - всё ок.
