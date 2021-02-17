@@ -172,7 +172,8 @@ If the -P option is given, all pending values are written to the policy file on 
 
 
 _________________________________________________
-Применю политику до перезагрузки
+Применю политику до перезагрузки  
+
 <code>[root@selin ~]# setsebool nis_enabled 1 </code>  
 
 _________________________________________________
