@@ -70,7 +70,7 @@ Feb 16 09:37:26 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 Всё - ок.  
 ![соединение с nginx](nginx.png)
 _________________________________________________
-Редактирую конфиг nginx, устанавливая на прослушивание не стандартный порт - 8088.
+Редактирую конфиг nginx, устанавливая на прослушивание нестандартный порт - 8088.
 <summary><code>[root@selin ~]# sed -i 's/.*listen       80 default_server;.*/listen       8088 default_server;/' /etc/nginx/nginx.conf </code></summary>
 
 _________________________________________________
@@ -115,7 +115,7 @@ Feb 16 09:45:06 selin systemd[1]: nginx.service failed.
 
 
 _________________________________________________
-#### 1. Предоставим возможность прослушивать nginx не стандартный порт с помощью переключателя setsebool. <a name="switchset"></a>  
+#### 1. Предоставим возможность прослушивать nginx нестандартный порт с помощью переключателя setsebool. <a name="switchset"></a>  
 
 https://www.nginx.com/blog/using-nginx-plus-with-selinux/  
 
@@ -204,7 +204,7 @@ Feb 17 08:47:04 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 
 
 _________________________________________________
-проверяю на каких портах слушает nginx - не стандартный порт открыт.
+проверяю на каких портах слушает nginx - нестандартный порт открыт.
 <details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
 
 ```shell
@@ -214,7 +214,7 @@ tcp    LISTEN     0      128    [::]:80                 [::]:*                  
 ```
 </details> 
 
-Браузер соединяется с nginx по не стандартному порту
+Браузер соединяется с nginx по нестандартному порту
 ![соединение с nginx](nginx88.png)
 
 
@@ -229,10 +229,11 @@ _________________________________________________
 #### 2. Добавление нестандартного порта в имеющийся тип.<a name="addport"></a> 
 http://blog.102web.ru/howto/selinux-centos-komandy/  
 
-_________________________________________________
-<code>[root@selin ~]# semanage port -a -t http_port_t -p tcp 8088</code>
+Разрешаю доступ к порту.  
+<code>[root@selin ~]# semanage port -a -t http_port_t -p tcp 8088</code>  
 
 _________________________________________________
+Проверяю разрешения на доступ к порту.   
 <details><summary><code>[root@selin ~]# semanage port -l | grep http</code></summary>
 
 ```shell
@@ -246,6 +247,7 @@ pegasus_https_port_t           tcp      5989
 </details> 
 
 _________________________________________________
+Рестартую nginx и проверяю статус сервера.
 <details><summary><code>[root@selin ~]# systemctl restart nginx.service</code></summary>
 
 ```shell
@@ -271,20 +273,19 @@ Feb 17 08:50:30 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 </details> 
 
 _________________________________________________
+Проверяю на каких портах слушает nginx - всё ок.
 <details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
 
 ```shell
 tcp    LISTEN     0      128       *:8088                  *:*                   users:(("nginx",pid=998,fd=6),("nginx",pid=997,fd=6))
 tcp    LISTEN     0      128    [::]:80                 [::]:*                   users:(("nginx",pid=998,fd=7),("nginx",pid=997,fd=7))
 
-<details><summary><code>[root@selin ~]# semanage port -d -t http_port_t -p tcp 8088</code></summary>
-
-```shell
-  
-```
-</details> 
+_________________________________________________
+Удаляю порт из разрешённых.
+<code>[root@selin ~]# semanage port -d -t http_port_t -p tcp 8088</code>
 
 _________________________________________________
+Рестартую nginx - т.к. порт закрыт, получаем ожидаемую ошибку.
 <details><summary><code>[root@selin ~]# systemctl restart nginx.service</code></summary>
 
 ```shell
@@ -294,6 +295,10 @@ Job for nginx.service failed because the control process exited with error code.
 </details> 
 
 _________________________________________________
+### 3. - формирование и установка модуля SELinux.<a name="createmod"></a>  
+https://docs.fedoraproject.org/ru-RU/Fedora/13/html/Security-Enhanced_Linux/sect-Security-Enhanced_Linux-Fixing_Problems-Allowing_Access_audit2allow.html  
+
+Определяем ошибку.
 <details><summary><code>[root@selin ~]# tail /var/log/audit/audit.log | grep nginx | grep denied</code></summary>
 
 ```shell
@@ -302,8 +307,8 @@ type=AVC msg=audit(1613551927.961:74): avc:  denied  { name_bind } for  pid=1017
 ```
 </details> 
 
-
 _________________________________________________
+Используя утилиту audit2allow создадим модуль политики.
 <details><summary><code>[root@selin ~]# grep 1613551927.961:74 /var/log/audit/audit.log | audit2allow -M http_port --debug</code></summary>
 
 ```shell
@@ -315,15 +320,11 @@ semodule -i http_port.pp
 ```
 </details> 
 
-_________________________________________________
-<details><summary><code>[root@selin ~]# semodule -i http_port.pp</code></summary>
-
-```shell
-  
-```
-</details> 
+И применим его.
+<code>[root@selin ~]# semodule -i http_port.pp</code>
 
 _________________________________________________
+Рестартуем nginx и проверяем его статус.
 <details><summary><code>[root@selin ~]# systemctl restart nginx.service</code></summary>
 
 ```shell
@@ -348,7 +349,7 @@ Feb 17 08:54:23 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 ```
 </details> 
 
-_________________________________________________
+проверяем порты - всё ок.
 <details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
 
 ```shell
@@ -359,3 +360,4 @@ tcp    LISTEN     0      128    [::]:80                 [::]:*                  
 ```
 </details> 
 
+Задание выполнено.
