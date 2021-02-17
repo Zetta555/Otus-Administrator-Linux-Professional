@@ -42,8 +42,8 @@ policycoreutils-python policycoreutils-devel policycoreutils-newrole policycoreu
     ausearch -m AVC — показывает нарушения политик  
   
 ### Ход выполнения задания.  
-Проверяю статус сервиса nginx 
 
+Проверяю статус сервиса nginx 
 <details><summary><code>[root@selin ~]# systemctl status nginx.service </code></summary>
 
 ```shell
@@ -67,25 +67,19 @@ Feb 16 09:37:26 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 ```
 </details> 
 
-Всё - ок.
+Всё - ок.  
 
-<details><summary><code>[root@selin ~]# ps auZ | grep nginx </code></summary>
+_________________________________________________
+Редактирую конфиг nginx, устанавливая на прослушивание не стандартный порт - 8088.
+<summary><code>[root@selin ~]# sed -i 's/.*listen       80 default_server;.*/listen       8088 default_server;/' /etc/nginx/nginx.conf </code></summary>
 
-```shell
-unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 root 25036 0.0  0.2 12500 684 pts/0 S+ 09:35   0:00 grep --color=auto nginx
-  
-```
-</details> 
+_________________________________________________
+Перезапускаю сервер nginx и наблюдаю ошибку запуска по причине 
 
-
-<details><summary><code>[root@selin ~]# sed -i 's/.*listen       80 default_server;.*/listen       8088 default_server;/' /etc/nginx/nginx.conf </code></summary>
-
-```shell
-  
-```
-</details> 
-
-
+<code>nginx: [emerg] bind() to 0.0.0.0:8088 failed (13: Permission denied)<code>  
+	
+запрета доступа к порту 8088.  
+	
 <details><summary><code>[root@selin ~]# systemctl restart nginx </code></summary>
 
 ```shell
@@ -120,7 +114,7 @@ Feb 16 09:45:06 selin systemd[1]: nginx.service failed.
 </details> 
 
 
-
+_________________________________________________
 #### 1. <a name="switchset"></a>
 https://www.nginx.com/blog/using-nginx-plus-with-selinux/
 
@@ -136,7 +130,7 @@ type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=301
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# cat /var/log/audit/audit.log | grep nginx | grep denied </code></summary>
 
 ```shell
@@ -145,7 +139,7 @@ type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=301
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# grep 1613551433.976:845 /var/log/audit/audit.log | audit2why </code></summary>
 
 ```shell
@@ -163,7 +157,7 @@ type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=301
 </details> 
 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# man setsebool
 
 ```shell
@@ -174,7 +168,7 @@ If the -P option is given, all pending values are written to the policy file on 
 </details> 
 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# setsebool nis_enabled 1 </code></summary>
 
 ```shell
@@ -185,7 +179,7 @@ If the -P option is given, all pending values are written to the policy file on 
 
 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# systemctl restart nginx</code></summary>
 
 ```shell
@@ -211,7 +205,7 @@ Feb 17 08:47:04 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 </details> 
 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
 
 ```shell
@@ -223,7 +217,7 @@ tcp    LISTEN     0      128    [::]:80                 [::]:*                  
 
 
 http://blog.102web.ru/howto/selinux-centos-komandy/
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# reboot</code></summary>
 
 ```shell
@@ -231,7 +225,7 @@ http://blog.102web.ru/howto/selinux-centos-komandy/
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
 
 ```shell
@@ -239,15 +233,10 @@ http://blog.102web.ru/howto/selinux-centos-komandy/
 ```
 </details> 
 
+_________________________________________________
+<code>[root@selin ~]# semanage port -a -t http_port_t -p tcp 8088</code>
 
-<details><summary><code>[root@selin ~]# semanage port -a -t http_port_t -p tcp 8088</code></summary>
-
-```shell
-  
-```
-</details> 
-
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# semanage port -l | grep http</code></summary>
 
 ```shell
@@ -260,7 +249,7 @@ pegasus_https_port_t           tcp      5989
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# systemctl restart nginx.service</code></summary>
 
 ```shell
@@ -285,7 +274,7 @@ Feb 17 08:50:30 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
 
 ```shell
@@ -299,7 +288,7 @@ tcp    LISTEN     0      128    [::]:80                 [::]:*                  
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# systemctl restart nginx.service</code></summary>
 
 ```shell
@@ -308,7 +297,7 @@ Job for nginx.service failed because the control process exited with error code.
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# tail /var/log/audit/audit.log | grep nginx | grep denied</code></summary>
 
 ```shell
@@ -318,7 +307,7 @@ type=AVC msg=audit(1613551927.961:74): avc:  denied  { name_bind } for  pid=1017
 </details> 
 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# grep 1613551927.961:74 /var/log/audit/audit.log | audit2allow -M http_port --debug</code></summary>
 
 ```shell
@@ -330,7 +319,7 @@ semodule -i http_port.pp
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# semodule -i http_port.pp</code></summary>
 
 ```shell
@@ -338,7 +327,7 @@ semodule -i http_port.pp
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# systemctl restart nginx.service</code></summary>
 
 ```shell
@@ -363,7 +352,7 @@ Feb 17 08:54:23 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 ```
 </details> 
 
-
+_________________________________________________
 <details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
 
 ```shell
