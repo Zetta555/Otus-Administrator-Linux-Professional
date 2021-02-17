@@ -115,7 +115,7 @@ Feb 16 09:45:06 selin systemd[1]: nginx.service failed.
 
 
 _________________________________________________
-#### 1. Предоставим возможность прослушивать nginx нестандартный порт с помощью переключателя setsebool. <a name="switchset"></a>  
+### 1. Предоставим возможность прослушивать nginx нестандартный порт с помощью переключателя setsebool. <a name="switchset"></a>  
 
 https://www.nginx.com/blog/using-nginx-plus-with-selinux/  
 
@@ -227,7 +227,7 @@ _________________________________________________
 <summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>  
 
 _________________________________________________
-#### 2. Добавление нестандартного порта в имеющийся тип.<a name="addport"></a> 
+### 2. Добавление нестандартного порта в имеющийся тип.<a name="addport"></a> 
 http://blog.102web.ru/howto/selinux-centos-komandy/  
 
 Разрешаю доступ к порту.  
