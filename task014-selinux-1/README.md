@@ -68,7 +68,7 @@ Feb 16 09:37:26 selin systemd[1]: Started The nginx HTTP and reverse proxy serve
 </details> 
 
 Всё - ок.  
-
+![соединение с nginx](nginx.png)
 _________________________________________________
 Редактирую конфиг nginx, устанавливая на прослушивание не стандартный порт - 8088.
 <summary><code>[root@selin ~]# sed -i 's/.*listen       80 default_server;.*/listen       8088 default_server;/' /etc/nginx/nginx.conf </code></summary>
