@@ -6,6 +6,6 @@
 - формирование и установка модуля SELinux.  
 
 ### Введение.  
-Сформирована виртуальная машина средствами Vagrant, с помощью директивы SHELL установлены пакеты:  
+Сформирована виртуальная машина средствами Vagrant, с помощью provision shell-скрипта установлены пакеты:  
 policycoreutils-python policycoreutils-devel policycoreutils-newrole policycoreutils-restorecond setools-console
 и nginx.
