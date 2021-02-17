@@ -220,21 +220,14 @@ tcp    LISTEN     0      128    [::]:80                 [::]:*                  
 
 
 _________________________________________________
-<details><summary><code>[root@selin ~]# reboot</code></summary>
+Перезагружаю виртуальную машину
+<code>[root@selin ~]# reboot</code>  
+Проверяю на каких портах слушает nginx - вывод пустой, сервис не запустился. 
+<details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>  
 
-```shell
-  
-```
-</details> 
-
-http://blog.102web.ru/howto/selinux-centos-komandy/
 _________________________________________________
-<details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
-
-```shell
-  
-```
-</details> 
+2. добавление нестандартного порта в имеющийся тип;<a name="addport"></a> 
+http://blog.102web.ru/howto/selinux-centos-komandy/  
 
 _________________________________________________
 <code>[root@selin ~]# semanage port -a -t http_port_t -p tcp 8088</code>
