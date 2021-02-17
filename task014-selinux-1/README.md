@@ -76,8 +76,8 @@ _________________________________________________
 _________________________________________________
 Перезапускаю сервер nginx и наблюдаю ошибку запуска по причине.  
   
-<code> nginx: [emerg] bind() to 0.0.0.0:8088 failed (13: Permission denied) <code>  
-  
+<code>nginx: [emerg] bind() to 0.0.0.0:8088 failed (13: Permission denied) </code>  
+
 Запрета доступа к порту 8088.  
   	
 <details><summary><code>[root@selin ~]# systemctl restart nginx </code></summary>
