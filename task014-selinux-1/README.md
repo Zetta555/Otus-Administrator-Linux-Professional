@@ -1,14 +1,14 @@
 # Практика с SELinux
 ## Цель: Тренируем умение работать с SELinux: диагностировать проблемы и модифицировать политики SELinux для корректной работы приложений, если это требуется.
 ### Запустить nginx на нестандартном порту 3-мя разными способами:  
-- переключатели setsebool;  
-- добавление нестандартного порта в имеющийся тип;  
-- формирование и установка модуля SELinux.  
+[1. - переключатели setsebool;](#switchset)   
+[2. - добавление нестандартного порта в имеющийся тип;](#addport)  
+[3. - формирование и установка модуля SELinux.](#createmod)  
 
 ### Введение.  
 Сформирована виртуальная машина средствами Vagrant, с помощью provision shell-скрипта установлены пакеты:  
-policycoreutils-python policycoreutils-devel policycoreutils-newrole policycoreutils-restorecond setools-console
-и nginx.  
+policycoreutils-python policycoreutils-devel policycoreutils-newrole policycoreutils-restorecond setools-console  
+также установлен и активирован сервер nginx.  
 #### Используемый инструментарий.    
 Команды  
   
@@ -41,8 +41,12 @@ policycoreutils-python policycoreutils-devel policycoreutils-newrole policycoreu
     usermod/useradd -Z связать пользователя с SELinux-пользователем  
     ausearch -m AVC — показывает нарушения политик  
   
-  
-[root@selin ~]# systemctl status nginx.service
+### Ход выполнения задания.  
+Проверяю статус сервиса nginx 
+
+<details><summary><code>[root@selin ~]# systemctl status nginx.service </code></summary>
+
+```shell
 ● nginx.service - The nginx HTTP and reverse proxy server
    Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
    Active: active (running) since Tue 2021-02-16 09:37:26 UTC; 4s ago
@@ -59,17 +63,41 @@ Feb 16 09:37:26 selin nginx[25087]: nginx: the configuration file /etc/nginx/ngi
 Feb 16 09:37:26 selin nginx[25087]: nginx: configuration file /etc/nginx/nginx.conf test is successful
 Feb 16 09:37:26 selin systemd[1]: Failed to parse PID from file /run/nginx.pid: Invalid argument
 Feb 16 09:37:26 selin systemd[1]: Started The nginx HTTP and reverse proxy server.
+    
+```
+</details> 
 
+Всё - ок.
 
-[root@selin ~]# ps auZ | grep nginx
+<details><summary><code>[root@selin ~]# ps auZ | grep nginx </code></summary>
+
+```shell
 unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 root 25036 0.0  0.2 12500 684 pts/0 S+ 09:35   0:00 grep --color=auto nginx
+  
+```
+</details> 
 
-[root@selin ~]# sed -i 's/.*listen       80 default_server;.*/listen       8088 default_server;/' /etc/nginx/nginx.conf
 
-[root@selin ~]# systemctl restart nginx
+<details><summary><code>[root@selin ~]# sed -i 's/.*listen       80 default_server;.*/listen       8088 default_server;/' /etc/nginx/nginx.conf </code></summary>
+
+```shell
+  
+```
+</details> 
+
+
+<details><summary><code>[root@selin ~]# systemctl restart nginx </code></summary>
+
+```shell
 Job for nginx.service failed because the control process exited with error code. See "systemctl status nginx.service" and "journalctl -xe" for details.
+  
+```
+</details> 
 
-[root@selin ~]# systemctl status nginx.service
+
+<details><summary><code>[root@selin ~]# systemctl status nginx.service </code></summary>
+
+```shell
 ● nginx.service - The nginx HTTP and reverse proxy server
    Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
    Active: failed (Result: exit-code) since Tue 2021-02-16 09:45:06 UTC; 13s ago
@@ -87,20 +115,40 @@ Feb 16 09:45:06 selin systemd[1]: nginx.service: control process exited, code=ex
 Feb 16 09:45:06 selin systemd[1]: Failed to start The nginx HTTP and reverse proxy server.
 Feb 16 09:45:06 selin systemd[1]: Unit nginx.service entered failed state.
 Feb 16 09:45:06 selin systemd[1]: nginx.service failed.
+  
+```
+</details> 
 
-[root@selin ~]# ausearch -m AVC
+
+
+#### 1. <a name="switchset"></a>
+https://www.nginx.com/blog/using-nginx-plus-with-selinux/
+
+<details><summary><code>[root@selin ~]# ausearch -m AVC </code></summary>
+
+```shell
 ----
 time->Wed Feb 17 08:43:53 2021
 type=PROCTITLE msg=audit(1613551433.976:845): proctitle=2F7573722F7362696E2F6E67696E78002D74
 type=SYSCALL msg=audit(1613551433.976:845): arch=c000003e syscall=49 success=no exit=-13 a0=6 a1=55c1b7a3d288 a2=10 a3=7ffed87e1b80 items=0 ppid=1 pid=3017 auid=4294967295 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=4294967295 comm="nginx" exe="/usr/sbin/nginx" subj=system_u:system_r:httpd_t:s0 key=(null)
 type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=3017 comm="nginx" src=8088 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:unreserved_port_t:s0 tclass=tcp_socket permissive=0
+  
+```
+</details> 
 
 
-https://www.nginx.com/blog/using-nginx-plus-with-selinux/
+<details><summary><code>[root@selin ~]# cat /var/log/audit/audit.log | grep nginx | grep denied </code></summary>
 
-[root@selin ~]# cat /var/log/audit/audit.log | grep nginx | grep denied
+```shell
 type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=3017 comm="nginx" src=8088 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:unreserved_port_t:s0 tclass=tcp_socket permissive=0
-[root@selin ~]# grep 1613551433.976:845 /var/log/audit/audit.log | audit2why
+  
+```
+</details> 
+
+
+<details><summary><code>[root@selin ~]# grep 1613551433.976:845 /var/log/audit/audit.log | audit2why </code></summary>
+
+```shell
 type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=3017 comm="nginx" src=8088 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:unreserved_port_t:s0 tclass=tcp_socket permissive=0
 
 	Was caused by:
@@ -110,9 +158,37 @@ type=AVC msg=audit(1613551433.976:845): avc:  denied  { name_bind } for  pid=301
 
 	Allow access by executing:
 	# setsebool -P nis_enabled 1
+  
+```
+</details> 
 
-[root@selin ~]# setsebool nis_enabled 1
-[root@selin ~]# systemctl restart nginx
+
+
+<details><summary><code>[root@selin ~]# man setsebool
+
+```shell
+Without the -P option, only the current boolean value is affected; the boot-time default settings are not changed.
+If the -P option is given, all pending values are written to the policy file on disk. So they will be persistent across reboots.
+  
+```
+</details> 
+
+
+
+<details><summary><code>[root@selin ~]# setsebool nis_enabled 1 </code></summary>
+
+```shell
+  
+```
+</details> 
+
+
+
+
+
+<details><summary><code>[root@selin ~]# systemctl restart nginx</code></summary>
+
+```shell
 [root@selin ~]# systemctl status nginx.service
 ● nginx.service - The nginx HTTP and reverse proxy server
    Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
@@ -130,25 +206,64 @@ Feb 17 08:47:04 selin nginx[3038]: nginx: the configuration file /etc/nginx/ngin
 Feb 17 08:47:04 selin nginx[3038]: nginx: configuration file /etc/nginx/nginx.conf test is successful
 Feb 17 08:47:04 selin systemd[1]: Failed to parse PID from file /run/nginx.pid: Invalid argument
 Feb 17 08:47:04 selin systemd[1]: Started The nginx HTTP and reverse proxy server.
+  
+```
+</details> 
 
 
-[root@selin ~]# ss -tulnp | grep nginx
+
+<details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
+
+```shell
 tcp    LISTEN     0      128       *:8088                  *:*                   users:(("nginx",pid=3043,fd=6),("nginx",pid=3042,fd=6))
 tcp    LISTEN     0      128    [::]:80                 [::]:*                   users:(("nginx",pid=3043,fd=7),("nginx",pid=3042,fd=7))
+  
+```
+</details> 
+
 
 http://blog.102web.ru/howto/selinux-centos-komandy/
 
-[root@selin ~]# reboot
+<details><summary><code>[root@selin ~]# reboot</code></summary>
 
-[root@selin ~]# ss -tulnp | grep nginx
-[root@selin ~]# semanage port -a -t http_port_t -p tcp 8088
-[root@selin ~]# semanage port -l | grep http
+```shell
+  
+```
+</details> 
+
+
+<details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
+
+```shell
+  
+```
+</details> 
+
+
+<details><summary><code>[root@selin ~]# semanage port -a -t http_port_t -p tcp 8088</code></summary>
+
+```shell
+  
+```
+</details> 
+
+
+<details><summary><code>[root@selin ~]# semanage port -l | grep http</code></summary>
+
+```shell
 http_cache_port_t              tcp      8080, 8118, 8123, 10001-10010
 http_cache_port_t              udp      3130
 http_port_t                    tcp      8088, 80, 81, 443, 488, 8008, 8009, 8443, 9000
 pegasus_http_port_t            tcp      5988
 pegasus_https_port_t           tcp      5989
-[root@selin ~]# systemctl restart nginx.service
+  
+```
+</details> 
+
+
+<details><summary><code>[root@selin ~]# systemctl restart nginx.service</code></summary>
+
+```shell
 [root@selin ~]# systemctl status nginx.service
 ● nginx.service - The nginx HTTP and reverse proxy server
    Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
@@ -166,26 +281,67 @@ Feb 17 08:50:30 selin nginx[993]: nginx: the configuration file /etc/nginx/nginx
 Feb 17 08:50:30 selin nginx[993]: nginx: configuration file /etc/nginx/nginx.conf test is successful
 Feb 17 08:50:30 selin systemd[1]: Failed to parse PID from file /run/nginx.pid: Invalid argument
 Feb 17 08:50:30 selin systemd[1]: Started The nginx HTTP and reverse proxy server.
+  
+```
+</details> 
 
-[root@selin ~]# ss -tulnp | grep nginx
+
+<details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
+
+```shell
 tcp    LISTEN     0      128       *:8088                  *:*                   users:(("nginx",pid=998,fd=6),("nginx",pid=997,fd=6))
 tcp    LISTEN     0      128    [::]:80                 [::]:*                   users:(("nginx",pid=998,fd=7),("nginx",pid=997,fd=7))
 
-[root@selin ~]# semanage port -d -t http_port_t -p tcp 8088
-[root@selin ~]# systemctl restart nginx.service
-Job for nginx.service failed because the control process exited with error code. See "systemctl status nginx.service" and "journalctl -xe" for details.
+<details><summary><code>[root@selin ~]# semanage port -d -t http_port_t -p tcp 8088</code></summary>
 
-[root@selin ~]# tail /var/log/audit/audit.log | grep nginx | grep denied
+```shell
+  
+```
+</details> 
+
+
+<details><summary><code>[root@selin ~]# systemctl restart nginx.service</code></summary>
+
+```shell
+Job for nginx.service failed because the control process exited with error code. See "systemctl status nginx.service" and "journalctl -xe" for details.
+  
+```
+</details> 
+
+
+<details><summary><code>[root@selin ~]# tail /var/log/audit/audit.log | grep nginx | grep denied</code></summary>
+
+```shell
 type=AVC msg=audit(1613551927.961:74): avc:  denied  { name_bind } for  pid=1017 comm="nginx" src=8088 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:unreserved_port_t:s0 tclass=tcp_socket permissive=0
-[root@selin ~]# grep 1613551927.961:74 /var/log/audit/audit.log | audit2allow -M http_port --debug
+  
+```
+</details> 
+
+
+
+<details><summary><code>[root@selin ~]# grep 1613551927.961:74 /var/log/audit/audit.log | audit2allow -M http_port --debug</code></summary>
+
+```shell
 ******************** IMPORTANT ***********************
 To make this policy package active, execute:
 
 semodule -i http_port.pp
+  
+```
+</details> 
 
-[root@selin ~]# semodule -i http_port.pp
 
-[root@selin ~]# systemctl restart nginx.service
+<details><summary><code>[root@selin ~]# semodule -i http_port.pp</code></summary>
+
+```shell
+  
+```
+</details> 
+
+
+<details><summary><code>[root@selin ~]# systemctl restart nginx.service</code></summary>
+
+```shell
 [root@selin ~]# systemctl status nginx.service
 ● nginx.service - The nginx HTTP and reverse proxy server
    Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
@@ -203,8 +359,18 @@ Feb 17 08:54:23 selin nginx[1044]: nginx: the configuration file /etc/nginx/ngin
 Feb 17 08:54:23 selin nginx[1044]: nginx: configuration file /etc/nginx/nginx.conf test is successful
 Feb 17 08:54:23 selin systemd[1]: Failed to parse PID from file /run/nginx.pid: Invalid argument
 Feb 17 08:54:23 selin systemd[1]: Started The nginx HTTP and reverse proxy server.
+  
+```
+</details> 
 
-[root@selin ~]# ss -tulnp | grep nginx
+
+<details><summary><code>[root@selin ~]# ss -tulnp | grep nginx</code></summary>
+
+```shell
 tcp    LISTEN     0      128       *:8088                  *:*                   users:(("nginx",pid=1049,fd=6),("nginx",pid=1048,fd=6))
 tcp    LISTEN     0      128    [::]:80                 [::]:*                   users:(("nginx",pid=1049,fd=7),("nginx",pid=1048,fd=7))
 [root@selin ~]# 
+  
+```
+</details> 
+
