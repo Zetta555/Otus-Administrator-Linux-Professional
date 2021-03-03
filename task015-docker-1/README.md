@@ -38,16 +38,14 @@ hello-world   latest    bf756fb1ae65   14 months ago   13.3kB
 ```
 </details> 
 
-$> docker build -t zetta55/alpng:v1.0 .
+<details><summary><code>$> docker build -t zetta55/alpng:v1.0 .</code></summary>
+      
+```shell
 Sending build context to Docker daemon   5.12kB
-Step 1/7 : FROM alpine:3.13
-3.13: Pulling from library/alpine
-ba3557a56b15: Already exists 
-Digest: sha256:a75afd8b57e7f34e4dad8d65e2c7ba2e1975c795ce1ee22fa34f8cf46f96a3be
-Status: Downloaded newer image for alpine:3.13
+Step 1/8 : FROM alpine:3.13
  ---> 28f6e2705743
-Step 2/7 : RUN apk update && apk add nginx && rm -rf /var/cache/apk/*
- ---> Running in 03117f8d27cb
+Step 2/8 : RUN apk update && apk add nginx && rm -rf /var/cache/apk/*
+ ---> Running in 027d77e02e54
 fetch https://dl-cdn.alpinelinux.org/alpine/v3.13/main/x86_64/APKINDEX.tar.gz
 fetch https://dl-cdn.alpinelinux.org/alpine/v3.13/community/x86_64/APKINDEX.tar.gz
 v3.13.2-58-ge3f19cedc6 [https://dl-cdn.alpinelinux.org/alpine/v3.13/main]
@@ -59,33 +57,65 @@ Executing nginx-1.18.0-r13.pre-install
 Executing nginx-1.18.0-r13.post-install
 Executing busybox-1.32.1-r3.trigger
 OK: 7 MiB in 16 packages
-Removing intermediate container 03117f8d27cb
- ---> 2d266877ab8a
-Step 3/7 : RUN adduser -D -g 'www' www && mkdir /www && chown -R www:www /var/lib/nginx && chown -R www:www /www
- ---> Running in b1b118c426bf
-Removing intermediate container b1b118c426bf
- ---> 70c7141b1f76
-Step 4/7 : COPY index.html /www
- ---> 369bccf2c2b9
-Step 5/7 : COPY nginx.conf /etc/nginx/nginx.conf
- ---> 8afac38ebfa9
-Step 6/7 : EXPOSE 80
- ---> Running in c2a87e7f8a59
-Removing intermediate container c2a87e7f8a59
- ---> 6479b1f91544
-Step 7/7 : CMD ["nginx", "-g", "daemon off;"]
- ---> Running in 1c68b595fc62
-Removing intermediate container 1c68b595fc62
- ---> 191427ee7224
-Successfully built 191427ee7224
+Removing intermediate container 027d77e02e54
+ ---> c3b12435a1ca
+Step 3/8 : RUN adduser -D -g 'www' www && mkdir /www && chown -R www:www /var/lib/nginx && chown -R www:www /www
+ ---> Running in 76f8135645f5
+Removing intermediate container 76f8135645f5
+ ---> d4c904e0f88d
+Step 4/8 : RUN mkdir -p /run/nginx
+ ---> Running in be72637aa5f9
+Removing intermediate container be72637aa5f9
+ ---> 2439d94bc9c7
+Step 5/8 : COPY index.html /www
+ ---> 4a4988ad0c6f
+Step 6/8 : COPY nginx.conf /etc/nginx/nginx.conf
+ ---> f7c4f182eaa6
+Step 7/8 : EXPOSE 80
+ ---> Running in 1f0ee6b6a3c3
+Removing intermediate container 1f0ee6b6a3c3
+ ---> ec6b8e29f356
+Step 8/8 : CMD ["nginx", "-g", "daemon off;"]
+ ---> Running in 52a04964c05f
+Removing intermediate container 52a04964c05f
+ ---> f9ac11d6cb47
+Successfully built f9ac11d6cb47
 Successfully tagged zetta55/alpng:v1.0
+```
+</details> 
+<details><summary><code>$> docker images</code></summary>
+      
+```shell
+REPOSITORY      TAG       IMAGE ID       CREATED          SIZE
+zetta55/alpng   v1.0      f9ac11d6cb47   13 seconds ago   7.04MB
+alpine          3.13      28f6e2705743   13 days ago      5.61MB
+hello-world     latest    bf756fb1ae65   14 months ago    13.3kB
+```
+</details> 
 
-$> docker images
-REPOSITORY      TAG       IMAGE ID       CREATED              SIZE
-zetta55/alpng   v1.0      191427ee7224   About a minute ago   7.04MB
-alpine          3.13      28f6e2705743   13 days ago          5.61MB
-hello-world     latest    bf756fb1ae65   14 months ago        13.3kB
+<code>$> docker run -p 80:80 -t zetta55/alpng:v1.0</code>
 
+<details><summary><code>$> docker ps | grep zetta</code></summary>
+      
+```shell
+d0ef7b36480e   zetta55/alpng:v1.0   "nginx -g 'daemon of…"   4 seconds ago   Up 3 seconds   0.0.0.0:80->80/tcp   jovial_hypatia
+```
+</details> 
+<details><summary><code>$> curl localhost</code></summary>
+      
+```shell
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>HTML5</title>
+</head>
+<body>
+    Server is online
+</body>
+</html>
+```
+</details> 
 
 ### 2. Разница между контейнером и образом. <a name="whatdiff"></a>  
 https://habr.com/ru/post/253877/  
@@ -100,3 +130,44 @@ Docker-образ — это read-only шаблон. Например, обра�
 В принципе, возможно, установив компилятор, необходимые для него библиотеки, сделав доступными исходные тексты. Но запустить это ядро в контейнере не получится, т.к. контейнер использует ядро хостовой системы.
 
 ### 4. Сылка на собраный образ в docker hub <a name="pushimage"></a>
+<details><summary><code>$> docker login </code></summary>
+      
+```shell
+Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
+Username: zetta55
+Password: 
+WARNING! Your password will be stored unencrypted in /home/discentem/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+```
+</details> 
+<details><summary><code>$> docker push zetta55/alpng:v1.0</code></summary>
+      
+```shell
+The push refers to repository [docker.io/zetta55/alpng]
+88885cbd49ba: Pushed 
+78f5ead21337: Pushed 
+26728a4a01b5: Pushed 
+dcee2c006940: Pushed 
+cba4d50c4c21: Pushed 
+cb381a32b229: Mounted from library/alpine 
+v1.0: digest: sha256:1d99eb80a4171f1cba3d8826c0240215dca5a63f5ce91b558e382150dcaea9f5 size: 1567
+```
+</details> 
+<details><summary><code>$> docker pull zetta55/alpng:v1.0</code></summary>
+      
+```shell
+v1.0: Pulling from zetta55/alpng
+ba3557a56b15: Pull complete 
+0789809e908a: Pull complete 
+5e74dc7d7677: Pull complete 
+584f40acd761: Pull complete 
+63110641bc6e: Pull complete 
+5a4cd0f41c98: Pull complete 
+Digest: sha256:1d99eb80a4171f1cba3d8826c0240215dca5a63f5ce91b558e382150dcaea9f5
+Status: Downloaded newer image for zetta55/alpng:v1.0
+docker.io/zetta55/alpng:v1.0
+```
+</details> 
