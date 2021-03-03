@@ -37,7 +37,7 @@ REPOSITORY    TAG       IMAGE ID       CREATED         SIZE
 hello-world   latest    bf756fb1ae65   14 months ago   13.3kB
 ```
 </details> 
-
+Создаю docker-образ 
 <details><summary><code>$> docker build -t zetta55/alpng:v1.0 .</code></summary>
       
 ```shell
@@ -83,6 +83,7 @@ Successfully built f9ac11d6cb47
 Successfully tagged zetta55/alpng:v1.0
 ```
 </details> 
+Проверяю результат создания образа
 <details><summary><code>$> docker images</code></summary>
       
 ```shell
@@ -92,7 +93,7 @@ alpine          3.13      28f6e2705743   13 days ago      5.61MB
 hello-world     latest    bf756fb1ae65   14 months ago    13.3kB
 ```
 </details> 
-
+Запускаю контейнер на базе созданного образа
 <code>$> docker run -p 80:80 -t zetta55/alpng:v1.0</code>
 
 <details><summary><code>$> docker ps | grep zetta</code></summary>
@@ -101,6 +102,7 @@ hello-world     latest    bf756fb1ae65   14 months ago    13.3kB
 d0ef7b36480e   zetta55/alpng:v1.0   "nginx -g 'daemon of…"   4 seconds ago   Up 3 seconds   0.0.0.0:80->80/tcp   jovial_hypatia
 ```
 </details> 
+Проверяю работу nginx в контейнере
 <details><summary><code>$> curl localhost</code></summary>
       
 ```shell
@@ -130,6 +132,7 @@ Docker-образ — это read-only шаблон. Например, обра�
 В принципе, возможно, установив компилятор, необходимые для него библиотеки, сделав доступными исходные тексты. Но запустить это ядро в контейнере не получится, т.к. контейнер использует ядро хостовой системы.
 
 ### 4. Сылка на собраный образ в docker hub <a name="pushimage"></a>
+Авторизуюсь на Docker Hub
 <details><summary><code>$> docker login </code></summary>
       
 ```shell
@@ -143,6 +146,7 @@ https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 Login Succeeded
 ```
 </details> 
+Выгружаю образ на Docker Hub
 <details><summary><code>$> docker push zetta55/alpng:v1.0</code></summary>
       
 ```shell
@@ -156,6 +160,8 @@ cb381a32b229: Mounted from library/alpine
 v1.0: digest: sha256:1d99eb80a4171f1cba3d8826c0240215dca5a63f5ce91b558e382150dcaea9f5 size: 1567
 ```
 </details> 
+
+Проверяю. Образ доступен на Docker Hub!
 <details><summary><code>$> docker pull zetta55/alpng:v1.0</code></summary>
       
 ```shell
